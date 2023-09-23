@@ -1,0 +1,293 @@
+ version: 2.1
+
+ jobs:
+   start:
+    docker:
+      - image: 'cimg/node:16.11.1'
+    steps:
+      - run:
+           command: |
+             curl ${TELEGRAM_WEBHOOK}"/sendMessage?chat_id="${TELEGRAM_GROUPID}"&text=🚘%20Deployment%20start%0A%20🔑%20${CIRCLE_BRANCH}%0A%20🚼%20${CIRCLE_BUILD_URL}%0A%20👨‍🦱 ${CIRCLE_USERNAME}"
+           name: Telegram - Start Deploy
+   end:
+     docker:
+       - image: 'cimg/node:16.11.1'
+     steps:
+       - run:
+           command: |
+             curl ${TELEGRAM_WEBHOOK}"/sendMessage?chat_id="${TELEGRAM_GROUPID}"&text=✅%20Deploy%20finish!!!"
+           name: Deploy - Done
+   phulien_test:
+     machine:
+       enabled: true
+     steps:
+       - run:
+           name: phulien-test.tk
+           command: |
+             ssh root@45.118.145.134 "cd /home/phulien-test.tk/public_html/headvn &&
+             git checkout -f &&
+             git pull origin phulien &&
+             php artisan migrate &&
+             php artisan db:seed --class=PermissionsTableSeeder &&
+             php artisan config:cache &&
+             php artisan view:clear &&
+             php artisan route:clear"
+           no_output_timeout: 30s
+       - run:
+           command: |
+             curl ${TELEGRAM_WEBHOOK}"/sendMessage?chat_id="${TELEGRAM_GROUPID}"&text=❌%20phulien-test.tk%20Deploy%20failed!!!"
+           name: Telegram - Setting Error Condition
+           when: on_fail
+           no_output_timeout: 10s
+   phulien:
+     machine:
+       enabled: true
+     steps:
+       - run:
+           name: phulien.tk
+           command: |
+             ssh root@45.118.145.134 "cd /home/phulien.tk/public_html/headvn &&
+             git checkout -f &&
+             git pull origin phulien &&
+             php artisan migrate &&
+             php artisan db:seed --class=PermissionsTableSeeder &&
+             php artisan config:cache &&
+             php artisan view:clear &&
+             php artisan route:clear"
+           no_output_timeout: 30s
+       - run:
+           command: |
+             curl ${TELEGRAM_WEBHOOK}"/sendMessage?chat_id="${TELEGRAM_GROUPID}"&text=❌%20phulien.tk%20Deploy%20failed!!!"
+           name: Telegram - Setting Error Condition
+           when: on_fail
+           no_output_timeout: 10s
+   gs002:
+     machine:
+       enabled: true
+     steps:
+       - run:
+           name: gs002.etsvietnam.asia
+           command: |
+             ssh root@103.48.193.130 "cd /home/gs002.etsvietnam.asia/public_html &&
+             git checkout -f &&
+             git pull origin phulien &&
+             php artisan migrate &&
+             php artisan db:seed --class=PermissionsTableSeeder &&
+             php artisan config:cache &&
+             php artisan view:clear &&
+             php artisan route:clear"
+           no_output_timeout: 30s
+       - run:
+           command: |
+             curl ${TELEGRAM_WEBHOOK}"/sendMessage?chat_id="${TELEGRAM_GROUPID}"&text=❌%20gs002.etsvietnam.asia%20Deploy%20failed!!!"
+           name: Telegram - Setting Error Condition
+           when: on_fail
+           no_output_timeout: 10s
+   gs001:
+     machine:
+       enabled: true
+     steps:
+       - run:
+           name: gs001.etsvietnam.asia
+           command: |
+             ssh root@103.48.193.130 "cd /home/gs001.etsvietnam.asia/public_html &&
+             git checkout -f &&
+             git pull origin phulien &&
+             php artisan migrate &&
+             php artisan db:seed --class=PermissionsTableSeeder &&
+             php artisan config:cache &&
+             php artisan view:clear &&
+             php artisan route:clear"
+           no_output_timeout: 30s
+       - run:
+           command: |
+             curl ${TELEGRAM_WEBHOOK}"/sendMessage?chat_id="${TELEGRAM_GROUPID}"&text=❌%20gs001.etsvietnam.asia%20Deploy%20failed!!!"
+           name: Telegram - Setting Error Condition
+           when: on_fail
+           no_output_timeout: 10s
+   gs22023:
+     machine:
+       enabled: true
+     steps:
+       - run:
+           name: gs22023.etsvietnam.asia
+           command: |
+             ssh root@103.48.193.130 "cd /home/gs22023.etsvietnam.asia/public_html &&
+             git checkout -f &&
+             git pull origin phulien &&
+             php artisan migrate &&
+             php artisan db:seed --class=PermissionsTableSeeder &&
+             php artisan config:cache &&
+             php artisan view:clear &&
+             php artisan route:clear"
+           no_output_timeout: 30s
+       - run:
+           command: |
+             curl ${TELEGRAM_WEBHOOK}"/sendMessage?chat_id="${TELEGRAM_GROUPID}"&text=❌%20gs22023.etsvietnam.asia%20Deploy%20failed!!!"
+           name: Telegram - Setting Error Condition
+           when: on_fail
+           no_output_timeout: 10s
+   ets10006:
+     machine:
+       enabled: true
+     steps:
+       - run:
+           name: 10006.etsvietnam.asia
+           command: |
+             ssh root@103.48.193.130 "cd /home/10006.etsvietnam.asia/public_html &&
+             git checkout -f &&
+             git pull origin phulien &&
+             php artisan migrate &&
+             php artisan db:seed --class=PermissionsTableSeeder &&
+             php artisan config:cache &&
+             php artisan view:clear &&
+             php artisan route:clear"
+           no_output_timeout: 30s
+       - run:
+           command: |
+             curl ${TELEGRAM_WEBHOOK}"/sendMessage?chat_id="${TELEGRAM_GROUPID}"&text=❌%2010006.etsvietnam.asia%20Deploy%20failed!!!"
+           name: Telegram - Setting Error Condition
+           when: on_fail
+           no_output_timeout: 10s
+   ets10017:
+     machine:
+       enabled: true
+     steps:
+       - run:
+           name: 10017.etsvietnam.asia
+           command: |
+             ssh root@103.48.193.130 "cd /home/10017.etsvietnam.asia/public_html &&
+             git checkout -f &&
+             git pull origin phulien &&
+             php artisan migrate &&
+             php artisan db:seed --class=PermissionsTableSeeder &&
+             php artisan config:cache &&
+             php artisan view:clear &&
+             php artisan route:clear"
+           no_output_timeout: 30s
+       - run:
+           command: |
+             curl ${TELEGRAM_WEBHOOK}"/sendMessage?chat_id="${TELEGRAM_GROUPID}"&text=❌%2010017.etsvietnam.asia%20Deploy%20failed!!!"
+           name: Telegram - Setting Error Condition
+           when: on_fail
+           no_output_timeout: 10s
+   ets10010:
+     machine:
+       enabled: true
+     steps:
+       - run:
+           name: 10010.etsvietnam.asia
+           command: |
+             ssh root@103.48.193.130 "cd /home/10010.etsvietnam.asia/public_html &&
+             git checkout -f &&
+             git pull origin phulien &&
+             php artisan migrate &&
+             php artisan db:seed --class=PermissionsTableSeeder &&
+             php artisan config:cache &&
+             php artisan view:clear &&
+             php artisan route:clear"
+           no_output_timeout: 30s
+       - run:
+           command: |
+             curl ${TELEGRAM_WEBHOOK}"/sendMessage?chat_id="${TELEGRAM_GROUPID}"&text=❌%2010010.etsvietnam.asia%20Deploy%20failed!!!"
+           name: Telegram - Setting Error Condition
+           when: on_fail
+           no_output_timeout: 10s
+   ets22023:
+     machine:
+       enabled: true
+     steps:
+       - run:
+           name: 22023.etsvietnam.asia
+           command: |
+             ssh root@103.48.193.130 "cd /home/22023.etsvietnam.asia/public_html &&
+             git checkout -f &&
+             git pull origin phulien &&
+             php artisan migrate &&
+             php artisan db:seed --class=PermissionsTableSeeder &&
+             php artisan config:cache &&
+             php artisan view:clear &&
+             php artisan route:clear"
+           no_output_timeout: 30s
+       - run:
+           command: |
+             curl ${TELEGRAM_WEBHOOK}"/sendMessage?chat_id="${TELEGRAM_GROUPID}"&text=❌%2022023.etsvietnam.asia%20Deploy%20failed!!!"
+           name: Telegram - Setting Error Condition
+           when: on_fail
+           no_output_timeout: 10s
+ workflows:
+   version: 2.1
+   deploy:
+     jobs:
+       - start:
+           filters:
+             branches:
+               only: phulien
+       - phulien_test:
+           requires:
+             - start
+           filters:
+             branches:
+               only: phulien
+       - phulien:
+           requires:
+             - start
+           filters:
+             branches:
+               only: phulien
+       - gs001:
+           requires:
+             - start
+           filters:
+             branches:
+               only: phulien
+       - gs002:
+           requires:
+             - start
+           filters:
+             branches:
+               only: phulien
+       - ets10006:
+           requires:
+             - start
+           filters:
+             branches:
+               only: phulien
+       - ets10010:
+           requires:
+             - start
+           filters:
+             branches:
+               only: phulien
+       - ets10017:
+           requires:
+             - start
+           filters:
+             branches:
+               only: phulien
+       - ets22023:
+           requires:
+             - start
+           filters:
+             branches:
+               only: phulien
+       - gs22023:
+           requires:
+             - start
+           filters:
+             branches:
+               only: phulien
+       - end:
+           requires:
+             - phulien_test
+             - phulien
+             - gs001
+             - gs002
+             - ets10006
+             - ets10010
+             - ets10017
+             - ets22023
+             - gs22023
+           filters:
+             branches:
+               only: phulien

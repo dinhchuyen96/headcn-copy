@@ -1,0 +1,273 @@
+<?php
+
+namespace App\Http\Livewire\DanhMucMaPhuTung;
+
+use App\Models\CategoryAccessory;
+use App\Models\User;
+use App\Models\Warehouse;
+use App\Models\PositionInWarehouse;
+use Livewire\Component;
+use Carbon\Carbon;
+
+class Edit extends Component
+{
+    public $CA;
+    public $idCA;
+    public $nameCategory;
+    public $user_id;
+    public $nameCa ;
+
+
+    public $code ;
+    public $unit ;
+    public $parentcode;
+    public $parentname;
+    public $parentunit;
+    public $changerate;
+    public $warehouse_id;
+    public $position_in_warehouse_id;
+
+    public $selectwarehouse;     //select warehouse id
+    public $itemwarehouseid;
+    public $positionWarehouseList = [];
+    public $itempositionid;
+    public $positionWarehouseId ; //select position warehouse id
+    public $isViewMode  =false;
+
+    public $itemparentcode ;
+    public $parentcodes=[];
+    public $netprice = 0;
+
+    public function mount()
+    {
+
+         //get default parentcode
+         $parentcodes = CategoryAccessory::where('deleted_at',null)
+         ->where('code','<>',$this->code)
+         ->orderByDesc('id')
+         ->pluck('code');
+
+         if($parentcodes->isNotEmpty()){
+             $this->parentcodes = $parentcodes;
+         }
+         $this->changerate =1;//set default rate
+
+         //TUDN
+         $warehouses =Warehouse::all(); // it will get the entire table
+         if(!empty($warehouses)){
+             $this->warehouses = $warehouses;
+             foreach($warehouses as $item){
+                 $this->selectwarehouse =$item->id;
+                 //get position warehouse
+                 break;
+             }
+         }else $this->selectwarehouse =0;
+         //END TUDN
+         $m_positionWarehouseList = PositionInWarehouse::where('warehouse_id',$this->selectwarehouse)
+                                    ->get();
+         if($m_positionWarehouseList){
+             $this->positionWarehouseList =$m_positionWarehouseList;
+             foreach($m_positionWarehouseList as $item){
+                 //1. get selected
+                 $this->positionWarehouseId =$item->id;
+                 break;
+             }
+         }else $this->positionWarehouseId = 0;
+
+
+
+        if ($this->idCA) {
+            $partinfo = CategoryAccessory::where("id", $this->idCA)->firstOrFail();
+            $this->nameCategory = $partinfo->name;
+            $this->code =$partinfo->code;
+            $this->unit =$partinfo->unit;
+            $this->parentcode =$partinfo->parentcode;
+
+            $this->parentunit =$partinfo ->parentunit;
+            $this->changerate =$partinfo->changerate;
+            $this->selectwarehouse =$partinfo->warehouse_id;
+            $this->positionWarehouseId =$partinfo->position_in_warehouse_id;
+            $this->netprice =$partinfo->netprice;
+
+            $parentname =CategoryAccessory::where("code",  $this->parentcode)->pluck('name')->first();
+            $this->parentname =$parentname;
+
+        }
+    }
+
+    //TUDN
+    /**
+     * Do event change warehouse
+     */
+    public function onChangeWarehouse(){
+        //render lai vi tri kho
+        $warehouse_id = $this->selectwarehouse;
+        $m_positionWarehouseList = PositionInWarehouse::where('warehouse_id',$warehouse_id)->get();
+        if($m_positionWarehouseList){
+            $this->positionWarehouseList = $m_positionWarehouseList;
+            foreach($m_positionWarehouseList as $item){
+                $this->positionWarehouseId = $item->id;
+                break;
+            }
+        }
+    }
+
+    public function render()
+    {
+        $this->dispatchBrowserEvent('setSelect2');
+        return view('livewire.danhmucmaphutung.edit');
+    }
+
+    /**
+     * validate input
+     */
+    public function validateinput(){
+
+        $this->validate(
+            [
+                'code' => 'required|max:255',
+                'nameCategory' => 'required|max:255',
+                'unit' => 'required|max:20',
+                'netprice' =>'integer|gt:0|digits_between:1,9',
+            ],
+            [
+                'code.required' => 'Bắt buộc nhập mã',
+                'code.max' => 'mã phụ tùng không quá 255 kí tự',
+                'nameCategory.required' => 'Bắt buộc nhập tên danh mục',
+                'nameCategory.max' => 'tên pt không quá 255 kí tự',
+                'unit.required' => 'Đơn vị phải nhập',
+                'unit.max' => 'Đơn vị không quá 20 kí tự',
+                'netprice.integer' => 'giá bán đề xuất phải kiểu số',
+                'netprice.gt' => 'giá bán đề xuất phải lớn hơn 0',
+                'netprice.digits_between' =>'giá bán đề xuất nhỏ hơn 999999999',
+            ],
+            []
+        );
+
+        if($this->parentcode){
+            $this->validate(
+                [
+                    'changerate' => 'required|integer|gt:0'
+                ],
+                [
+                    'changerate.required' => 'Bắt buộc nhập tỉ lệ quy đổi',
+                    'changerate.integer' => 'Tỉ lệ quy đổi phải kiểu số',
+                    'changerate.integer' => 'Tỉ lệ quy đổi phải lớn hơn 0'
+                ],
+            );
+        }
+
+    }
+
+    /** update editing */
+    public function update()
+    {
+        $checkCode = CategoryAccessory::where("code", trim($this->code))
+        ->where('id','<>',$this->idCA)
+        ->count();
+        if ($checkCode > 0) {
+            $this->dispatchBrowserEvent('show-toast', ['type' => 'warning', 'message' => 'Mã phụ tùng đã tồn tại']);
+        } else {
+
+            $this->validateinput();
+
+            $categoryAccessory = CategoryAccessory::findOrFail($this->idCA);
+
+            $categoryAccessory->code =  $this->code;
+            $categoryAccessory->name =  $this->nameCategory;
+            $categoryAccessory->unit =  $this->unit;
+            $categoryAccessory->parentcode =  $this->parentcode;
+            $categoryAccessory->parentunit =  $this->parentunit;
+            $categoryAccessory->changerate =  $this->changerate;
+            $categoryAccessory->warehouse_id =  $this->selectwarehouse;
+            $categoryAccessory->position_in_warehouse_id =  $this->positionWarehouseId;
+            $categoryAccessory->netprice =$this->netprice;
+            $categoryAccessory->updated_at =  reFormatDate(now(), 'Y-m-d');
+            $categoryAccessory->save();
+
+            $this->dispatchBrowserEvent('show-toast', ['type' => 'success', 'message' => 'Cập nhật thành công']);
+            $this->back();
+
+        }
+    }
+
+
+
+    /***
+     * when user change parent code
+     * get parent unit
+     * and it warehouse, position warehouse id
+     */
+    public function updatedparentcode(){
+        $parentcode = $this->parentcode;
+
+        //1. check parent code da duoc su dung cho 1 ma nao khac
+        $this->parentcategory = CategoryAccessory::where('parentcode',trim($this->parentcode))
+        ->where('code','<>',$this->code)
+        ->count() ;
+        if($this->parentcategory > 0){
+            $message = 'Mã phụ tùng cha '. $this->parentcode.'Đã được sử dụng';
+            $this->dispatchBrowserEvent('show-toast', ['type' => 'warning', 'message' =>$message]);
+        }else{
+            $partinfo = CategoryAccessory::where('code',$parentcode)->first();
+            if($partinfo){
+                $this->parentunit = $partinfo->unit;
+                $this->selectwarehouse = $partinfo->warehouse_id;
+                $this->positionWarehouseId = $partinfo->position_in_warehouse_id ;
+                $this->parentname =$partinfo->name;
+            }
+        }
+    }
+
+    /**when user change warehouse
+     * get position of select wwarhouse
+     */
+    public function updatedselectwarehouse(){
+        //render lai vi tri kho
+        $warehouse_id = $this->selectwarehouse;
+        $m_positionWarehouseList = PositionInWarehouse::where('warehouse_id',$warehouse_id)->get();
+        if($m_positionWarehouseList){
+            $this->positionWarehouseList = $m_positionWarehouseList;
+            foreach($m_positionWarehouseList as $item){
+                $this->positionWarehouseId = $item->id;
+                break;
+            }
+        }
+    }
+
+    public function resetInput()
+    {
+        $this->code = '';
+        $this->nameCategory = '';
+        $this->unit = '';
+        $this->parentcode = '';
+        $this->parentunit = '';
+        $this->changerate = 1;
+
+          //TUDN
+          $warehouses =Warehouse::all(); // it will get the entire table
+          if(!empty($warehouses)){
+              $this->warehouses = $warehouses;
+              foreach($warehouses as $item){
+                  $this->selectwarehouse =$item->id;
+                  //get position warehouse
+                  break;
+              }
+          }else $this->selectwarehouse =0;
+          //END TUDN
+          $m_positionWarehouseList = PositionInWarehouse::where('warehouse_id',$this->selectwarehouse)
+                                     ->get();
+          if($m_positionWarehouseList){
+              $this->positionWarehouseList =$m_positionWarehouseList;
+              foreach($m_positionWarehouseList as $item){
+                  //1. get selected
+                  $this->positionWarehouseId =$item->id;
+                  break;
+              }
+          }else $this->positionWarehouseId = 0;
+    }
+    public function back()
+    {
+        return redirect()->to('/danhmucmaphutung/danhsach');
+    }
+}
